@@ -10,6 +10,11 @@ python-dotenv = "*"
 flask-sqlalchemy = "*"
 mysqlclient = "*"
 flask-restful = "*"
+pyjwt = "*"
+flask-mail = "*"
+jsonschema = "*"
+flask-apscheduler = "*"
+flask-migrate = "*"
 
 [dev-packages]
 
