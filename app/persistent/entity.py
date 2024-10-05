@@ -1,3 +1,4 @@
+import logging
 from typing import Any, Self
 from sqlalchemy import (
     Integer,
@@ -28,7 +29,7 @@ class UserEntity(sa.Model):
     name: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
     password: Mapped[str] = mapped_column(String(512), nullable=False)
     email: Mapped[str] = mapped_column(String(255), nullable=False)
-    role: Mapped[str] = mapped_column(String(10), nullable=False)
+    role: Mapped[str] = mapped_column(String(15), nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean, default=False)
 
     transactions: Mapped[list['TransactionEntity']] = relationship(
@@ -70,8 +71,6 @@ class ActivationTokenEntity(sa.Model):
         return self.timestamp > datetime.datetime.now(datetime.UTC).timestamp()
 
 
-# todo zmienic moze na int zamiat decimala zeby latwiej bylo . i po sprawdzeniu
-# aplikacji zamienic na decimala.
 class TransactionEntity(sa.Model):
     __tablename__ = 'transactions'
 
@@ -94,6 +93,8 @@ class TransactionEntity(sa.Model):
         }
 
     def change_amount(self, amount: int) -> None:
+        if self.amount == amount:
+            return
         self.amount = amount
 
 
@@ -102,11 +103,6 @@ class IncomeEntity(TransactionEntity):
 
     id: Mapped[int] = mapped_column(Integer, ForeignKey('transactions.id'), primary_key=True)
     category_id: Mapped[int] = mapped_column(Integer, ForeignKey('income_categories.id'), nullable=False)
-
-    category: Mapped['IncomeCategoryEntity'] = relationship(
-        'IncomeCategoryEntity',
-        backref='income_transactions'
-    )
 
     __mapper_args__ = {
         'polymorphic_identity': 'income'
@@ -124,10 +120,6 @@ class ExpenseEntity(TransactionEntity):
     id: Mapped[int] = mapped_column(Integer, ForeignKey('transactions.id'), primary_key=True)
     category_id: Mapped[int] = mapped_column(Integer, ForeignKey('expense_categories.id'), nullable=False)
 
-    category: Mapped['ExpenseCategoryEntity'] = relationship(
-        'ExpenseCategoryEntity',
-        backref='expense_transactions'
-    )
     __mapper_args__ = {
         'polymorphic_identity': 'expense'
     }
@@ -157,6 +149,12 @@ class IncomeCategoryEntity(CategoryEntity):
 
     id: Mapped[int] = mapped_column(Integer, ForeignKey('categories.id'), primary_key=True)
 
+    income_transactions: Mapped[list[IncomeEntity]] = relationship(
+        'IncomeEntity',
+        backref='category',
+        cascade='all, delete-orphan'
+    )
+
     __mapper_args__ = {
         'polymorphic_identity': 'income'
     }
@@ -167,6 +165,12 @@ class ExpenseCategoryEntity(CategoryEntity):
 
     id: Mapped[int] = mapped_column(Integer, ForeignKey('categories.id'), primary_key=True)
     percentage: Mapped[int] = mapped_column(Integer, default=10)
+
+    expense_transactions: Mapped[list[ExpenseEntity]] = relationship(
+        'ExpenseEntity',
+        backref='category',
+        cascade='all, delete-orphan'
+    )
 
     __mapper_args__ = {
         'polymorphic_identity': 'expense'
