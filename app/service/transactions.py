@@ -15,7 +15,7 @@ from app.persistent.entity import (
     ExpenseEntity,
     TransactionEntity
 )
-from app.service.dto import CreateTransactionDto, TransactionDto
+from app.service.dto import CreateTransactionDto, TransactionDto, CategoryDto
 
 import logging
 
@@ -30,12 +30,12 @@ class TransactionService:
     user_repository: UserRepository
     category_repository: CategoryRepository
 
-    def get_by_id(self, transaction_id: int) -> TransactionEntity:
+    def get_by_id(self, transaction_id: int) -> dict[str, Any]:
         transaction = self.transaction_repository.find_by_id(transaction_id)
         if not transaction:
             raise NotFound('Transaction not found')
 
-        return transaction
+        return TransactionDto.from_transaction_entity(transaction).to_dict()
 
     def create_transaction(self, transaction_dto: CreateTransactionDto) -> TransactionEntity:
 
@@ -79,25 +79,23 @@ class TransactionService:
 
         transaction.change_amount(new_amount)
 
-        if isinstance(transaction, IncomeEntity):
-            self.income_repository.save_or_update(transaction)
-
-        elif isinstance(transaction, ExpenseEntity):
-            self.expense_repository.save_or_update(transaction)
-
+        self.transaction_repository.save_or_update(transaction)
         return TransactionDto.from_transaction_entity(transaction).to_dict()
 
-    def get_all_transactions_for_category(self, category_name: str) -> list[TransactionEntity]:
+    def get_all_transactions_for_category(self, category_name: str) -> list[dict[str, Any]]:
         category = self.category_repository.find_by_name(category_name)
 
         if not category:
             raise NotFound('Category not found')
 
-        return category.income_transactions if category.type_ == 'income' else category.expense_transactions
+        transactions = category.income_transactions if category.type_ == 'income' else category.expense_transactions
+        return [TransactionDto.from_transaction_entity(t).to_dict() for t in transactions]
 
     def get_higher_than(self, expected_amount: float, transaction_type: str) -> list[dict[str, Any]]:
 
         if transaction_type == 'INCOME':
-            return [t.to_dict() for t in self.income_repository.find_higher_than(expected_amount)]
+            return [TransactionDto.from_transaction_entity(t).to_dict() for t in
+                    self.income_repository.find_higher_than(expected_amount)]
         if transaction_type == 'EXPENSE':
-            return [t.to_dict() for t in self.expense_repository.find_higher_than(expected_amount)]
+            return [TransactionDto.from_transaction_entity(t).to_dict() for t in
+                    self.expense_repository.find_higher_than(expected_amount)]

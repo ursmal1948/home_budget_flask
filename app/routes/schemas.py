@@ -31,3 +31,11 @@ transaction_type_schema = {
         "type": {"type": "string", "enum": ["INCOME", "EXPENSE"]},
     }
 }
+
+amount_schema = {
+    "type": "object",
+    "properties": {
+        "amount": {"type": "integer", "minimum": 10}
+    },
+    "required": ["amount"]
+}

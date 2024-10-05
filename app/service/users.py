@@ -124,3 +124,10 @@ class UserService:
             raise NotFound('User not found')
 
         return self.user_repository.find_by_id(user_id)
+
+    def get_total_income(self, user_id: int) -> int:
+        user = self.user_repository.find_by_id(user_id)
+        if not user:
+            raise NotFound('User not found')
+
+        return self.user_repository.calculate_total_income(user_id)

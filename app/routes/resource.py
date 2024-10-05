@@ -14,7 +14,8 @@ from app.routes.schemas import (
     validate_name,
     category_creation_schema,
     transaction_creation_schema,
-    transaction_type_schema
+    transaction_type_schema,
+    amount_schema
 )
 from app.service.configuration import (
     user_service,
@@ -62,6 +63,12 @@ class UserIdResource(Resource):
         return user_service.get_by_id(user_id)
 
 
+
+class UserIdTotalIncomeResource(Resource):
+    def get(self, user_id: int) -> Response:
+        return user_service.get_total_income(user_id)
+
+
 class CategoryNameResource(Resource):
     def get(self, category_name: str) -> Response:
         return category_service.get_by_name(category_name)
@@ -97,6 +104,24 @@ class TransactionResource(Resource):
 
         transaction_dto = CreateTransactionDto.from_dict(json_body)
         return transaction_service.add_transaction(transaction_dto)
+
+
+class TransactionIdResource(Resource):
+    def get(self, transaction_id: int) -> Response:
+        return transaction_service.get_by_id(transaction_id)
+
+    def patch(self, transaction_id: int) -> Response:
+        json_body = request.json
+        validate(json_body, amount_schema)
+        new_amount = json_body['amount']
+
+        return transaction_service.update_transaction(transaction_id, new_amount)
+
+
+
+class TransactionListByCategoryResource(Resource):
+    def get(self, category_name: str) -> Response:
+        return transaction_service.get_all_transactions_for_category(category_name)
 
 
 class BudgetSummaryResource(Resource):
