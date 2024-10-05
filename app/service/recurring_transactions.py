@@ -1,9 +1,8 @@
 from dataclasses import dataclass
 from typing import Any
-from flask import current_app
 import datetime
-
 from datetime import timedelta
+
 from app.persistent.repository import (
     RecurringTransactionRepository,
     UserRepository,
@@ -12,21 +11,27 @@ from app.persistent.repository import (
     IncomeRecurringTransactionRepository,
     ExpenseRecurringTransactionRepository, ExpenseRepository
 )
-from flask import Flask
-from app.persistent.entity import IncomeEntity, Frequency, ExpenseEntity
+from app.persistent.entity import (
+    IncomeEntity,
+    ExpenseEntity,
+    Frequency
+)
 from app.persistent.entity import (
     RecurringTransactionEntity,
     IncomeCategoryEntity,
-    ExpenseCategoryEntity,
     IncomeRecurringTransactionEntity,
-    ExpenseRecurringTransactionEntity,
+    ExpenseRecurringTransactionEntity
 )
-from app.service.dto import CreateRecurringTransactionDto
+from app.service.dto import (
+    CreateRecurringTransactionDto,
+    RecurringTransactionDto
+)
 import logging
+from flask_apscheduler import APScheduler
 
 logging.basicConfig(level=logging.INFO)
-# from app.main import scheduler
-from flask_apscheduler import APScheduler
+
+scheduler = APScheduler()
 
 
 @dataclass
@@ -78,14 +83,14 @@ class RecurringTransactionsService:
             self.expense_recurring_transaction_repository.save_or_update(recurring_transaction)
         return recurring_transaction
 
-    def _process_recurring_transaction(self, transaction: RecurringTransactionEntity):
+    def _process_recurring_transaction(self, transaction: RecurringTransactionEntity) -> dict[str, Any] | None:
 
         if isinstance(transaction, IncomeRecurringTransactionEntity):
             self.create_income_transaction(transaction)
         elif isinstance(transaction, ExpenseRecurringTransactionEntity):
             self.create_expense_transaction(transaction)
 
-        return transaction.to_dict()
+        return RecurringTransactionDto.from_transaction_entity(transaction).to_dict()
 
     def _validate_date_of_transaction(self, transaction: RecurringTransactionEntity, current_date: datetime.date):
         if transaction.is_invalid(current_date):
@@ -99,7 +104,6 @@ class RecurringTransactionsService:
             return transaction
 
     def process_recurring_transactions(self):
-
         current_date = (datetime.datetime.now()).date()
         entities = self.recurring_transaction_repository.find_all()
 
@@ -110,7 +114,8 @@ class RecurringTransactionsService:
 
         return [self._process_recurring_transaction(e) for e in transactions_to_process]
 
-    def _update_next_due_date(self, transaction: RecurringTransactionEntity):
+    @staticmethod
+    def _update_next_due_date(transaction: RecurringTransactionEntity):
         frequency = transaction.frequency
         if frequency == Frequency.DAILY:
             transaction.next_due_date += timedelta(days=1)
@@ -137,6 +142,6 @@ class RecurringTransactionsService:
             user_id=transaction.user_id,
             category_id=transaction.category_id,
         )
-        self._update_next_due_date(transaction)
+        RecurringTransactionsService._update_next_due_date(transaction)
         self.expense_repository.save_or_update(expense_entity)
         self.expense_recurring_transaction_repository.save_or_update(transaction)

@@ -135,6 +135,31 @@ class TransactionDto:
         )
 
 
+class RecurringTransactionDto(TransactionDto):
+    def __init__(self, id: int, amount: int, user_id: int, category_id: int, frequency: Frequency,
+                 next_due_date: datetime.date) -> None:
+        super().__init__(id, amount, user_id, category_id)
+        self.frequency = frequency
+        self.next_due_date = next_due_date
+
+    def to_dict(self) -> dict[str, Any]:
+        data = super().to_dict()
+        data['next_due_date'] = self.next_due_date.isoformat()
+        data['frequency'] = self.frequency.name
+        return data
+
+    @classmethod
+    def from_transaction_entity(cls, transaction_entity: TransactionEntity) -> Self:
+        return cls(
+            id=transaction_entity.id,
+            amount=int(transaction_entity.amount),
+            user_id=transaction_entity.user_id,
+            category_id=transaction_entity.category_id,
+            frequency=transaction_entity.frequency,
+            next_due_date=transaction_entity.next_due_date,
+        )
+
+
 @dataclass
 class CreateCategoryDto:
     name: str
@@ -216,4 +241,3 @@ class CreateRecurringTransactionDto:
 
     def is_valid_date(self, current_date: datetime) -> bool:
         return self.next_due_date >= current_date
-
