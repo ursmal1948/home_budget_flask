@@ -3,7 +3,6 @@ import logging
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
-from decimal import Decimal
 
 from app.persistent.configuration import sa
 from app.persistent.entity import (
@@ -68,26 +67,14 @@ class UserRepository(CrudRepositoryORM[UserEntity]):
         stmt = select(UserEntity).filter_by(name=name)
         return self.sa.session.execute(stmt).scalar_one_or_none()
 
-    def calculate_total_income(self, user_id: int) -> float:
+    def calculate_total_income(self, user_id: int) -> int:
         user = self.find_by_id(user_id)
         transactions = user.transactions
         return sum([t.amount for t in transactions if t.type_ == 'income'])
 
     def calculate_total_expenses(self, user_id: int, category_id: int) -> int:
         user = self.find_by_id(user_id)
-        logging.info("CATEGOY ID PRZYCHODZACA OD")
-        logging.info(category_id)
-        logging.info("CATEGOY ID PRZYCHODZACA OD")
-
-        # logging.info(user.transactions)
-        # expenses = sum([t for t in user.transactions if t.category_id == category_id and t.type_ == 'expense'])
-        logging.info("SUDUNSKSDJN")
         return sum([t.amount for t in user.transactions if t.type_ == 'expense' and t.category_id == category_id])
-        # logging.info(expenses[0].category_id)
-        # # logging.info(user.transactions)
-        # logging.info(expenses)
-        # logging.info("SUDUNSKSDJN")
-        # return 10
 
     def get_expense_categories_idx(self, user_id: int) -> list[int]:
         transactions = self.find_by_id(user_id).transactions
@@ -109,10 +96,6 @@ class ActivationTokenRepository(CrudRepositoryORM[ActivationTokenEntity]):
 class TransactionRepository(CrudRepositoryORM[TransactionEntity]):
     def __init__(self, db: SQLAlchemy) -> None:
         super().__init__(db, TransactionEntity)
-
-    # def find_higher_than(self, amount: float) -> list[TransactionEntity]:
-    #     stmt = select(TransactionEntity).where(TransactionEntity.amount > amount)
-    #     return self.sa.session.execute(stmt).all()
 
 
 class IncomeRepository(CrudRepositoryORM[IncomeEntity]):
