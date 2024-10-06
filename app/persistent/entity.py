@@ -6,7 +6,6 @@ from sqlalchemy import (
     String,
     Boolean,
     ForeignKey,
-    DateTime,
     Date
 )
 import datetime
@@ -181,6 +180,13 @@ class ExpenseCategoryEntity(CategoryEntity):
         data['percentage'] = float(self.percentage)
         return data
 
+    def change_precentage(self, percentage: int) -> None:
+        if self.percentage == percentage:
+            logging.info("WESZLAM same percentage")
+            return
+        logging.info("NIE weszlam w same precentage")
+        self.percentage = percentage
+
     def __str__(self):
         return f'id {id}  percentage {self.percentage}'
 
@@ -224,6 +230,11 @@ class RecurringTransactionEntity(sa.Model):
             "user_id": self.user_id,
             "next_due_date": self.next_due_date.strftime("%Y-%m-%d")
         }
+
+    def update_transaction_info(self, **kwargs) -> None:
+        self.amount = kwargs.get('amount', self.amount)
+        self.frequency = kwargs.get('frequency', self.frequency)
+        self.next_due_date = kwargs.get('next_due_date', self.next_due_date)
 
 
 class IncomeRecurringTransactionEntity(RecurringTransactionEntity):

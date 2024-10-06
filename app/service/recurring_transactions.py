@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from typing import Any
 import datetime
 from datetime import timedelta
+from werkzeug.exceptions import NotFound
 
 from app.persistent.repository import (
     RecurringTransactionRepository,
@@ -27,11 +28,9 @@ from app.service.dto import (
     RecurringTransactionDto
 )
 import logging
-from flask_apscheduler import APScheduler
 
 logging.basicConfig(level=logging.INFO)
 
-scheduler = APScheduler()
 
 
 @dataclass
@@ -44,9 +43,9 @@ class RecurringTransactionsService:
     expense_repository: ExpenseRepository
     recurring_transaction_repository: RecurringTransactionRepository
 
-    def create_recurring_transaction(
+    def add_recurring_transaction(
             self,
-            dto: CreateRecurringTransactionDto) -> RecurringTransactionEntity:
+            dto: CreateRecurringTransactionDto) -> dict[str, Any]:
 
         user_id = dto.user_id
 
@@ -56,11 +55,11 @@ class RecurringTransactionsService:
             raise ValueError('Invalid date')
 
         if not self.user_repository.find_by_id(user_id):
-            raise ValueError('User not found')
+            raise NotFound('User not found')
 
         category = self.category_repository.find_by_id(dto.category_id)
         if not category:
-            raise ValueError('Category not found')
+            raise NotFound('Category not found')
 
         if isinstance(category, IncomeCategoryEntity):
             recurring_transaction = IncomeRecurringTransactionEntity(
@@ -81,7 +80,8 @@ class RecurringTransactionsService:
             )
 
             self.expense_recurring_transaction_repository.save_or_update(recurring_transaction)
-        return recurring_transaction
+            return RecurringTransactionDto.from_transaction_entity(recurring_transaction).to_dict()
+
 
     def _process_recurring_transaction(self, transaction: RecurringTransactionEntity) -> dict[str, Any] | None:
 
@@ -145,3 +145,19 @@ class RecurringTransactionsService:
         RecurringTransactionsService._update_next_due_date(transaction)
         self.expense_repository.save_or_update(expense_entity)
         self.expense_recurring_transaction_repository.save_or_update(transaction)
+
+    def update_recurring_transaction(self, transaction_id: int, **kwargs) -> dict[str, Any]:
+        transaction = self.recurring_transaction_repository.find_by_id(transaction_id)
+        if not transaction:
+            raise NotFound('Recurring transaction not found')
+
+        transaction.update_transaction_info(**kwargs)
+        self.recurring_transaction_repository.save_or_update(transaction)
+        return RecurringTransactionDto.from_transaction_entity(transaction).to_dict()
+
+    def get_by_id(self, transaction_id: int) -> dict[str, Any]:
+        transaction = self.recurring_transaction_repository.find_by_id(transaction_id)
+        if not transaction:
+            raise NotFound('Recurring transaction not found')
+
+        return RecurringTransactionDto.from_transaction_entity(transaction).to_dict()
