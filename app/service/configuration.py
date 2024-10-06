@@ -1,4 +1,4 @@
-from app.service.users import UserService
+from app.service.users import UserService, UserSecurityService
 from app.service.categories import CategoryService
 from app.service.transactions import TransactionService
 from app.service.budget_planning import BudgetPlanningService
@@ -17,7 +17,8 @@ from app.persistent.repository import (
     recurring_transaction_repository,
 )
 
-user_service = UserService(user_repository, activation_token_repository)
+user_service = UserService(user_repository)
+user_security_service = UserSecurityService(user_repository, activation_token_repository)
 category_service = CategoryService(category_repository, income_category_repository, expense_category_repository)
 transaction_service = TransactionService(
     income_repository,
