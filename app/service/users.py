@@ -23,6 +23,58 @@ logging.basicConfig(level=logging.INFO)
 @dataclass
 class UserService:
     user_repository: UserRepository
+
+    def add_user(self, user_dto: CreateUserDto) -> dict[str, Any]:
+        username = user_dto.name
+        if self.user_repository.find_by_name(username):
+            raise ValueError('Username already exists')
+
+        email = user_dto.email
+        if self.user_repository.find_by_email(email):
+            raise ValueError('Email already exists')
+
+        user_entity = UserEntity(
+            name=user_dto.name,
+            password=user_dto.password,
+            email=user_dto.email,
+            role=user_dto.role
+        )
+
+        self.user_repository.save_or_update(user_entity)
+        return UserDto.from_user_entity(user_entity).to_dict()
+
+    def get_by_name(self, name: str) -> dict[str, Any]:
+        user = self.user_repository.find_by_name(name)
+        if not user:
+            raise NotFound('User not found')
+        return UserDto.from_user_entity(user).to_dict()
+
+    def get_by_email(self, email: str) -> dict[str, Any]:
+        user = self.user_repository.find_by_email(email)
+        if not user:
+            raise NotFound('User not found')
+
+        return UserDto.from_user_entity(user).to_dict()
+
+    def get_by_id(self, user_id: int) -> dict[str, Any]:
+        user = self.user_repository.find_by_id(user_id)
+        if not user:
+            raise NotFound('User not found')
+
+        return UserDto.from_user_entity(user).to_dict()
+        # return self.user_repository.find_by_id(user_id)
+
+    def get_total_income(self, user_id: int) -> int:
+        user = self.user_repository.find_by_id(user_id)
+        if not user:
+            raise NotFound('User not found')
+
+        return self.user_repository.calculate_total_income(user_id)
+
+
+@dataclass
+class UserSecurityService:
+    user_repository: UserRepository
     activation_token_repository: ActivationTokenRepository
 
     # co zwracac jak uzytkownik jest zarejestorwany
@@ -47,7 +99,7 @@ class UserService:
 
         timestamp = datetime.datetime.now(datetime.UTC) + datetime.timedelta(
             minutes=ACTIVATION_TOKEN_EXPIRATION_TIME_IN_SECONDS)
-        token = UserService._generate_token(ACTIVATION_TOKEN_LENGTH)
+        token = UserSecurityService._generate_token(ACTIVATION_TOKEN_LENGTH)
         user_id = user_entity.id
         self.activation_token_repository.save_or_update(
             ActivationTokenEntity(
@@ -91,43 +143,3 @@ class UserService:
     def _generate_token(size: int) -> str:
         characters = string.ascii_letters + string.digits
         return ''.join([random.choice(characters) for _ in range(size)])
-
-    def add_user(self, user_dto: CreateUserDto) -> dict[str, Any]:
-        username = user_dto.name
-        if self.user_repository.find_by_name(username):
-            raise ValueError('Username already exists')
-
-        email = user_dto.email
-        if self.user_repository.find_by_email(email):
-            raise ValueError('Email already exists')
-
-        user_entity = UserEntity(
-            name=user_dto.name,
-            password=user_dto.password,
-            email=user_dto.email,
-            role=user_dto.role
-        )
-
-        self.user_repository.save_or_update(user_entity)
-        return UserDto.from_user_entity(user_entity).to_dict()
-
-    def get_by_name(self, name: str) -> UserEntity | None:
-
-        return self.user_repository.find_by_name(name)
-
-    def get_by_email(self, email: str) -> UserEntity | None:
-        return self.user_repository.find_by_email(email)
-
-    def get_by_id(self, user_id: int) -> UserEntity | None:
-        user = self.user_repository.find_by_id(user_id)
-        if not user:
-            raise NotFound('User not found')
-
-        return self.user_repository.find_by_id(user_id)
-
-    def get_total_income(self, user_id: int) -> int:
-        user = self.user_repository.find_by_id(user_id)
-        if not user:
-            raise NotFound('User not found')
-
-        return self.user_repository.calculate_total_income(user_id)
