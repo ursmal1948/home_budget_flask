@@ -1,15 +1,12 @@
 from dataclasses import dataclass
 from typing import Any
-# from decimal import Decimal
+from werkzeug.exceptions import NotFound
 from app.persistent.repository import (
     IncomeRepository,
     UserRepository,
-    IncomeCategoryRepository,
     ExpenseRepository,
     TransactionRepository, CategoryRepository
 )
-from werkzeug.exceptions import NotFound
-
 from app.persistent.entity import (
     IncomeEntity,
     ExpenseEntity,
@@ -72,7 +69,7 @@ class TransactionService:
 
         return TransactionDto.from_transaction_entity(transaction).to_dict()
 
-    def update_transaction(self, transaction_id: int, new_amount: int) -> dict[str, Any]:
+    def update_transaction_amount(self, transaction_id: int, new_amount: int) -> dict[str, Any]:
         transaction = self.transaction_repository.find_by_id(transaction_id)
         if not transaction:
             raise NotFound('Transaction not found')
@@ -91,7 +88,7 @@ class TransactionService:
         transactions = category.income_transactions if category.type_ == 'income' else category.expense_transactions
         return [TransactionDto.from_transaction_entity(t).to_dict() for t in transactions]
 
-    def get_higher_than(self, expected_amount: float, transaction_type: str) -> list[dict[str, Any]]:
+    def get_transactions_higher_than(self, expected_amount: float, transaction_type: str) -> list[dict[str, Any]]:
 
         if transaction_type == 'INCOME':
             return [TransactionDto.from_transaction_entity(t).to_dict() for t in
