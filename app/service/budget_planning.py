@@ -1,5 +1,5 @@
-import logging
 from dataclasses import dataclass
+from werkzeug.exceptions import NotFound
 from app.persistent.repository import (
     TransactionRepository,
     UserRepository,
@@ -26,7 +26,7 @@ class BudgetPlanningService:
         category = self.category_repository.find_by_id(category_id)
 
         if not user:
-            raise ValueError('User not found')
+            raise NotFound('User not found')
         user_income = self.user_repository.calculate_total_income(user_id)
         return user_income * category.percentage / 100
 
