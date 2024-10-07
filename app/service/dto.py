@@ -1,9 +1,10 @@
+import logging
 from dataclasses import dataclass
 from typing import Self, Any
-from app.persistent.entity import UserEntity, TransactionEntity, CategoryEntity, ExpenseCategoryEntity
+from app.persistent.entity import UserEntity, TransactionEntity, CategoryEntity, ExpenseCategoryEntity, \
+    RecurringTransactionEntity
 from app.persistent.entity import Frequency
 import datetime
-
 
 # tutaj rejestrue uzytkownika ktory chce byc admine. Ale nigdy nie bedziemy podawac
 # roli jawnie. ale dla nas bedzie latwo tworzyc uzytkownikow z roznymi rolami.
@@ -13,6 +14,11 @@ import datetime
 # cala robote konwersujaca przechwytujaca zajmuja sie te modele.
 # skoro masz dto doloz walidacje na koniec.
 # walidacja dla danych ktore masz w dto.
+import logging
+
+logging.basicConfig(level=logging.INFO)
+
+
 @dataclass
 class RegisterUserDto:
     name: str
@@ -116,6 +122,7 @@ class TransactionDto:
     amount: int
     user_id: int
     category_id: int
+    type_: str
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -123,6 +130,7 @@ class TransactionDto:
             'amount': self.amount,
             'user_id': self.user_id,
             'category_id': self.category_id,
+            'type': self.type_,
         }
 
     @classmethod
@@ -132,24 +140,33 @@ class TransactionDto:
             amount=int(transaction_entity.amount),
             user_id=transaction_entity.user_id,
             category_id=transaction_entity.category_id,
+            type_=transaction_entity.type_
         )
 
 
-class RecurringTransactionDto(TransactionDto):
-    def __init__(self, id: int, amount: int, user_id: int, category_id: int, frequency: Frequency,
-                 next_due_date: datetime.date) -> None:
-        super().__init__(id, amount, user_id, category_id)
-        self.frequency = frequency
-        self.next_due_date = next_due_date
+@dataclass
+class RecurringTransactionDto:
+    id: int
+    amount: int
+    user_id: int
+    category_id: int
+    type_: str
+    frequency: Frequency
+    next_due_date: datetime.date
 
     def to_dict(self) -> dict[str, Any]:
-        data = super().to_dict()
-        data['next_due_date'] = self.next_due_date.isoformat()
-        data['frequency'] = self.frequency.name
-        return data
+        return {
+            'id': self.id,
+            'amount': self.amount,
+            'user_id': self.user_id,
+            'category_id': self.category_id,
+            'type': self.type_,
+            'frequency': self.frequency,
+            'next_due_date': self.next_due_date,
+        }
 
     @classmethod
-    def from_transaction_entity(cls, transaction_entity: TransactionEntity) -> Self:
+    def from_transaction_entity(cls, transaction_entity: RecurringTransactionEntity) -> Self:
         return cls(
             id=transaction_entity.id,
             amount=int(transaction_entity.amount),
@@ -157,7 +174,31 @@ class RecurringTransactionDto(TransactionDto):
             category_id=transaction_entity.category_id,
             frequency=transaction_entity.frequency,
             next_due_date=transaction_entity.next_due_date,
+            type_=transaction_entity.type_
         )
+
+
+@dataclass
+class CreateRecurringTransactionDto:
+    amount: int
+    frequency: Frequency
+    next_due_date: datetime
+    category_id: int
+    user_id: int
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> Self:
+        logging.info(data['next_due_date'])
+        return cls(
+            amount=int(data['amount']),
+            frequency=Frequency[data['frequency']],
+            next_due_date=datetime.datetime.strptime(data['next_due_date'], '%Y-%m-%d').date(),
+            category_id=data['category_id'],
+            user_id=data['user_id']
+        )
+
+    def is_valid_date(self, current_date: datetime) -> bool:
+        return self.next_due_date >= current_date
 
 
 @dataclass
@@ -219,25 +260,3 @@ class CreateCategorizedBudgetEntryDto:
             "actual_amount": self.actual_amount,
             "difference": self.planned_amount - self.actual_amount
         }
-
-
-@dataclass
-class CreateRecurringTransactionDto:
-    amount: int
-    frequency: Frequency
-    next_due_date: datetime
-    category_id: int
-    user_id: int
-
-    @classmethod
-    def from_dict(cls, data: dict[str, Any]) -> Self:
-        return cls(
-            amount=int(data['amount']),
-            frequency=Frequency[data['frequency']],
-            next_due_date=datetime.datetime.strptime(data['next_due_date'], '%Y-%m-%d').date(),
-            category_id=data['category_id'],
-            user_id=data['user_id']
-        )
-
-    def is_valid_date(self, current_date: datetime) -> bool:
-        return self.next_due_date >= current_date
