@@ -15,7 +15,10 @@ from app.routes.schemas import (
     category_creation_schema,
     transaction_creation_schema,
     transaction_type_schema,
-    amount_schema
+    amount_schema,
+    percentage_schema,
+    recurring_transction_update_schema,
+    recurring_transaction_creation_schema
 )
 from app.service.configuration import (
     user_service,
@@ -63,10 +66,14 @@ class UserIdResource(Resource):
         return user_service.get_by_id(user_id)
 
 
-
 class UserIdTotalIncomeResource(Resource):
     def get(self, user_id: int) -> Response:
         return user_service.get_total_income(user_id)
+
+
+class CategoryIdResource(Resource):
+    def get(self, category_id: int) -> Response:
+        return category_service.get_by_id(category_id)
 
 
 class CategoryNameResource(Resource):
@@ -97,6 +104,15 @@ class CategoryNameResource(Resource):
         return {'message': 'Category deleted'}, 200
 
 
+class ChangeExpenseCategoryPercentageResource(Resource):
+    def patch(self, category_id: int):
+        json_body = request.json
+        validate(json_body, schema=percentage_schema)
+        new_percentage = json_body['percentage']
+
+        return category_service.update_expense_percentage(category_id, new_percentage)
+
+
 class TransactionResource(Resource):
     def post(self) -> Response:
         json_body = request.json
@@ -115,8 +131,7 @@ class TransactionIdResource(Resource):
         validate(json_body, amount_schema)
         new_amount = json_body['amount']
 
-        return transaction_service.update_transaction(transaction_id, new_amount)
-
+        return transaction_service.update_transaction_info(transaction_id, new_amount)
 
 
 class TransactionListByCategoryResource(Resource):
@@ -126,16 +141,28 @@ class TransactionListByCategoryResource(Resource):
 
 class BudgetSummaryResource(Resource):
     def post(self, user_id: int) -> Response:
-        return budget_planning_service.generate_budget_entries(user_id)
+        return budget_planning_service.generate_budget_entries_for_user(user_id)
 
 
 class CreateRecurringTransaction(Resource):
     def post(self) -> Response:
         json_body = request.json
         recurring_transaction_dto = CreateRecurringTransactionDto.from_dict(data=json_body)
+        return recurring_transaction_service.add_recurring_transaction(recurring_transaction_dto)
 
-        recurring_transaction = recurring_transaction_service.create_recurring_transaction(recurring_transaction_dto)
-        return {'recurring_transaction': recurring_transaction.to_dict()}, 201
+
+class RecurringTransactionIdResource(Resource):
+
+    def get(self, transaction_id: int) -> Response:
+        return recurring_transaction_service.get_by_id(transaction_id)
+
+    def patch(self, transaction_id: int) -> Response:
+        json_body = request.json
+        if not json_body:
+            return {'message': 'No information to update'}, 400
+
+        validate(json_body, schema=recurring_transction_update_schema)
+        return recurring_transaction_service.update_recurring_transaction(transaction_id, **json_body)
 
 
 class ProcessRecurringTransactionsResource(Resource):
@@ -143,6 +170,7 @@ class ProcessRecurringTransactionsResource(Resource):
         recurring_transactions = recurring_transaction_service.process_recurring_transactions()
         if not recurring_transactions:
             return {'message': 'No recurring transactions to process'}, 200
+
         return recurring_transactions
 
 
@@ -152,4 +180,4 @@ class TransactionsFilterResource(Resource):
         json_body = request.json
         transaction_type = json_body['transaction_type']
         validate(json_body, schema=transaction_type_schema)
-        return transaction_service.get_higher_than(amount, transaction_type)
+        return transaction_service.get_transactions_higher_than(amount, transaction_type)
