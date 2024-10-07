@@ -1,7 +1,6 @@
 import logging
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 from werkzeug.exceptions import NotFound
-import pytest
 
 logging.basicConfig(level=logging.INFO)
 
@@ -38,8 +37,8 @@ class TestUserRoutes:
         assert response.status_code == 200
 
     @patch('app.routes.resource.UserIdResource.get')
-    def test_get_user_by_id_not_found(self, get_mock, client):
-        get_mock.side_effect = NotFound('User not found')
+    def test_get_user_by_id_not_found(self, mock_get, client):
+        mock_get.side_effect = NotFound('User not found')
         response = client.get('/users/999')
 
         assert response.status_code == 404

@@ -32,7 +32,6 @@ import logging
 logging.basicConfig(level=logging.INFO)
 
 
-
 @dataclass
 class RecurringTransactionsService:
     income_recurring_transaction_repository: IncomeRecurringTransactionRepository
@@ -80,8 +79,14 @@ class RecurringTransactionsService:
             )
 
             self.expense_recurring_transaction_repository.save_or_update(recurring_transaction)
-            return RecurringTransactionDto.from_transaction_entity(recurring_transaction).to_dict()
+        return RecurringTransactionDto.from_transaction_entity(recurring_transaction).to_dict()
 
+    def get_by_id(self, transaction_id: int) -> dict[str, Any]:
+        transaction = self.recurring_transaction_repository.find_by_id(transaction_id)
+        if not transaction:
+            raise NotFound('Recurring transaction not found')
+
+        return RecurringTransactionDto.from_transaction_entity(transaction).to_dict()
 
     def _process_recurring_transaction(self, transaction: RecurringTransactionEntity) -> dict[str, Any] | None:
 
@@ -126,13 +131,13 @@ class RecurringTransactionsService:
 
             transaction.next_due_date += timedelta(weeks=4)
 
-    def create_income_transaction(self, transaction: IncomeRecurringTransactionEntity):
+    def create_income_transaction(self, transaction: IncomeRecurringTransactionEntity) -> None:
         income_entity = IncomeEntity(
             amount=transaction.amount,
             user_id=transaction.user_id,
             category_id=transaction.category_id,
         )
-        self._update_next_due_date(transaction)
+        RecurringTransactionsService._update_next_due_date(transaction)
         self.income_repository.save_or_update(income_entity)
         self.income_recurring_transaction_repository.save_or_update(transaction)
 
@@ -153,11 +158,4 @@ class RecurringTransactionsService:
 
         transaction.update_transaction_info(**kwargs)
         self.recurring_transaction_repository.save_or_update(transaction)
-        return RecurringTransactionDto.from_transaction_entity(transaction).to_dict()
-
-    def get_by_id(self, transaction_id: int) -> dict[str, Any]:
-        transaction = self.recurring_transaction_repository.find_by_id(transaction_id)
-        if not transaction:
-            raise NotFound('Recurring transaction not found')
-
         return RecurringTransactionDto.from_transaction_entity(transaction).to_dict()

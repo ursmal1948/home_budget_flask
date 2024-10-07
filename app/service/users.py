@@ -62,7 +62,6 @@ class UserService:
             raise NotFound('User not found')
 
         return UserDto.from_user_entity(user).to_dict()
-        # return self.user_repository.find_by_id(user_id)
 
     def get_total_income(self, user_id: int) -> int:
         user = self.user_repository.find_by_id(user_id)
