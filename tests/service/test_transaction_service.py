@@ -2,10 +2,10 @@ import logging
 
 import pytest
 from unittest.mock import MagicMock
-from app.service.dto import CreateTransactionDto, TransactionDto
+from app.service.dto import CreateTransactionDto
 from app.persistent.entity import UserEntity, CategoryEntity
 from app.service.transactions import TransactionService
-from app.persistent.entity import TransactionEntity, IncomeEntity, ExpenseEntity
+from app.persistent.entity import  IncomeEntity, ExpenseEntity
 
 logging.basicConfig(level=logging.INFO)
 
