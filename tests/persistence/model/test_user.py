@@ -13,4 +13,3 @@ class TestUserModel:
         assert (user_to_dict['name'], user_to_dict['email'], user_to_dict['password']) == (
             user.name, user.email, user.password
         )
-
