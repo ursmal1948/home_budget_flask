@@ -60,7 +60,7 @@ services:
     # z nginx i wywolywaly create_app skonfigurowana w naszym projekcie
 
     # Dzieki --reload gunicorn przeladowuje automatycznie wszelkie zmiany w kodzie
-    command: gunicorn --bind 0.0.0.0:8000 --workers 4 'app.main:create_app()' --reload
+    command: gunicorn --bind 0.0.0.0:8000 --workers 1 'app.main:create_app()' --reload
     volumes:
       - ./:/webapp
     # Tutaj sprawdzamy, czy kontener mysql jest uruchomiony prawidlowo
