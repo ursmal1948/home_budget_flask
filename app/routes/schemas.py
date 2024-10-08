@@ -1,5 +1,4 @@
 import re
-from datetime import datetime
 
 
 def validate_name(name: str) -> bool:
@@ -7,6 +6,28 @@ def validate_name(name: str) -> bool:
         return False
     return True
 
+
+user_creation_schema = {
+    "type": "object",
+    "properties": {
+        "name": {
+            "type": "string",
+            "pattern": r'^[A-Z][a-z]+$'
+        },
+        "password": {
+            "type": "string",
+            "pattern": r'^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$'
+        },
+        "email": {
+            "type": "string",
+            "pattern": r'[\w\.-]+@(gmail.com|wp.pl|onet.pl)$'
+        },
+        "role": {
+            "type": "string", "enum": ["ADMIN", "USER"]
+        }
+    },
+    "required": ["name", "password", "email"]
+}
 
 category_creation_schema = {
     "type": "object",

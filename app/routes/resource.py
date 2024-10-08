@@ -12,9 +12,9 @@ from app.service.dto import (
 )
 from app.routes.schemas import (
     validate_name,
+    user_creation_schema,
     category_creation_schema,
     transaction_creation_schema,
-    transaction_type_schema,
     amount_schema,
     percentage_schema,
     recurring_transction_update_schema,
@@ -51,12 +51,9 @@ class ActivationUserResource(Resource):
 class CreateUserResource(Resource):
 
     def post(self) -> Response:
-        data = request.json
-        name = data['name']
-        if not validate_name(name):
-            return {'message': 'Invalid name'}, 400
-
-        user_dto = CreateUserDto.from_dict(data)
+        json_body = request.json
+        validate(json_body, schema=user_creation_schema)
+        user_dto = CreateUserDto.from_dict(json_body)
         return user_service.add_user(user_dto)
 
 
@@ -82,7 +79,8 @@ class CategoryNameResource(Resource):
 
     def post(self, category_name: str) -> Response:
         if not validate_name(category_name):
-            return jsonify({'message': 'Invalid name'}), 400
+            logging.info("JESETM TUTAJ ")
+            return {'message': 'Invalid name'}, 400
 
         json_body = request.json
         validate(json_body, schema=category_creation_schema)
@@ -131,22 +129,43 @@ class TransactionIdResource(Resource):
         validate(json_body, amount_schema)
         new_amount = json_body['amount']
 
-        return transaction_service.update_transaction_info(transaction_id, new_amount)
+        return transaction_service.update_transaction_amount(transaction_id, new_amount)
 
 
 class TransactionListByCategoryResource(Resource):
+
     def get(self, category_name: str) -> Response:
         return transaction_service.get_all_transactions_for_category(category_name)
 
 
+class TransactionsFilterResource(Resource):
+
+    def get(self) -> Response:
+        amount = request.args.get('amount')
+        json_body = request.json
+        transaction_type = json_body['transaction_type']
+
+        if transaction_type not in ['INCOME', 'EXPENSE']:
+            return {'message': 'Invalid transaction type'}, 400
+
+        return transaction_service.get_transactions_higher_than(amount, transaction_type)
+
+
 class BudgetSummaryResource(Resource):
-    def post(self, user_id: int) -> Response:
+    def get(self, user_id: int) -> Response:
         return budget_planning_service.generate_budget_entries_for_user(user_id)
+
+
+class BudgetListSummaryResource(Resource):
+    def get(self) -> Response:
+        return budget_planning_service.generate_budget_entries_for_all_users()
+
 
 
 class CreateRecurringTransaction(Resource):
     def post(self) -> Response:
         json_body = request.json
+        validate(json_body, schema=recurring_transaction_creation_schema)
         recurring_transaction_dto = CreateRecurringTransactionDto.from_dict(data=json_body)
         return recurring_transaction_service.add_recurring_transaction(recurring_transaction_dto)
 
@@ -172,12 +191,3 @@ class ProcessRecurringTransactionsResource(Resource):
             return {'message': 'No recurring transactions to process'}, 200
 
         return recurring_transactions
-
-
-class TransactionsFilterResource(Resource):
-    def get(self) -> Response:
-        amount = request.args.get('amount')
-        json_body = request.json
-        transaction_type = json_body['transaction_type']
-        validate(json_body, schema=transaction_type_schema)
-        return transaction_service.get_transactions_higher_than(amount, transaction_type)
