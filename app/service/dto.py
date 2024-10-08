@@ -161,8 +161,8 @@ class RecurringTransactionDto:
             'user_id': self.user_id,
             'category_id': self.category_id,
             'type': self.type_,
-            'frequency': self.frequency,
-            'next_due_date': self.next_due_date,
+            'frequency': self.frequency.name,
+            'next_due_date': self.next_due_date.strftime('%Y-%m-%d'),
         }
 
     @classmethod

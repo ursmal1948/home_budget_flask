@@ -79,6 +79,7 @@ class RecurringTransactionsService:
             )
 
             self.expense_recurring_transaction_repository.save_or_update(recurring_transaction)
+
         return RecurringTransactionDto.from_transaction_entity(recurring_transaction).to_dict()
 
     def get_by_id(self, transaction_id: int) -> dict[str, Any]:

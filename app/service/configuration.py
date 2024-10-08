@@ -29,8 +29,7 @@ transaction_service = TransactionService(
 )
 budget_planning_service = BudgetPlanningService(
     user_repository,
-    category_repository,
-    transaction_repository
+    category_repository
 )
 
 recurring_transaction_service = RecurringTransactionsService(
