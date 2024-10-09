@@ -12,5 +12,28 @@
 
 ### Using this application, users can easily manage their personal finances and track recurring transactions to ensure they are in control of their budget.
 
+
+## Docker & Containerization
+This project uses Docker for containerization, making it easy to set up and run application in isolated environments. The system includes several services:
+- Flask: runs the core web application with Gunicorn
+- MySQL: provides database storage for application data
+- Nginx: for handling http requests and routing them to Flask app
+
+Useful commands to execute:
+
+For building and running project
+```
+docker-compose up -d --build
+```
+It will build and run the project in detached mode, allowing developer to use terminal.
+
+To see the logs of containers
+```
+docker-compose logs -f
+```
+To stop and remove all the containers
+```
+docker-compose down
+```
 ## Tests
-### Each key component of the application is tested to ensure functionality and compliance to the expected behaviour. Testing is carried out using pytest and unittest with object mocking. The test coverage is over 80%, ensuring that the application performs reliably under various scenarios. 
+Each key component of the application is tested to ensure functionality and compliance to the expected behaviour. Testing is carried out using pytest and unittest with object mocking. The test coverage is over 80%, ensuring that the application performs reliably under various scenarios. 
