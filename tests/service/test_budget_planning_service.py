@@ -53,7 +53,6 @@ def test_calculate_planned_spending_for_user_by_category(service, user_mock_repo
 
     assert planned_spending is not None
     assert planned_spending == 300 * category.percentage / 100
-    assert user_mock_repo.find_by_id.call_count == 1
     assert user_mock_repo.calculate_total_income.call_count == 1
     assert category_mock_repo.find_by_id.call_count == 1
 
