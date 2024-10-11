@@ -22,7 +22,6 @@ DB_TEST_PORT = getenv('DB_PORT', '3308')
 DB_NAME = getenv('DB_NAME', 'db_1')
 DB_HOST = getenv('DB_HOST', 'mysql')
 DB_URL = f'mysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
-DB_TEST_URL = f'mysql://{DB_USERNAME}:{DB_PASSWORD}@{DB_HOST}:{DB_TEST_PORT}/{DB_NAME}'
 
 # ------------------------------------------------------------
 # MAIL CONFIGURATION
