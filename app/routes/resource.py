@@ -1,12 +1,13 @@
-from flask_restful import Resource, Api, reqparse
-from flask import jsonify, request, Response
+from flask_restful import Resource
+from flask import request, Response
+from jsonschema import validate
+import logging
+
 from app.service.dto import (
     RegisterUserDto,
-    UserDto,
     CreateUserDto,
     CreateCategoryDto,
     CreateTransactionDto,
-    TransactionDto,
     CreateRecurringTransactionDto,
 
 )
@@ -27,9 +28,6 @@ from app.service.configuration import (
     budget_planning_service,
     recurring_transaction_service
 )
-from jsonschema import validate
-
-import logging
 
 logging.basicConfig(level=logging.INFO)
 
@@ -79,7 +77,6 @@ class CategoryNameResource(Resource):
 
     def post(self, category_name: str) -> Response:
         if not validate_name(category_name):
-            logging.info("JESETM TUTAJ ")
             return {'message': 'Invalid name'}, 400
 
         json_body = request.json
@@ -111,7 +108,7 @@ class ChangeExpenseCategoryPercentageResource(Resource):
         return category_service.update_expense_percentage(category_id, new_percentage)
 
 
-class TransactionResource(Resource):
+class CreateTransactionResource(Resource):
     def post(self) -> Response:
         json_body = request.json
         validate(json_body, schema=transaction_creation_schema)
@@ -141,7 +138,7 @@ class TransactionListByCategoryResource(Resource):
 class TransactionsFilterResource(Resource):
 
     def get(self) -> Response:
-        amount = request.args.get('amount')
+        amount = int(request.args.get('amount'))
         json_body = request.json
         transaction_type = json_body['transaction_type']
 
@@ -161,8 +158,7 @@ class BudgetListSummaryResource(Resource):
         return budget_planning_service.generate_budget_entries_for_all_users()
 
 
-
-class CreateRecurringTransaction(Resource):
+class CreateRecurringTransactionResource(Resource):
     def post(self) -> Response:
         json_body = request.json
         validate(json_body, schema=recurring_transaction_creation_schema)
