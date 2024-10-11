@@ -113,7 +113,7 @@ def test_add_recurring_transaction(service, mock_user_repo, mock_category_repo,
     assert added_transaction is not None
     assert 'id' in added_transaction
     assert added_transaction['amount'] == 200
-    assert added_transaction['frequency'] == Frequency.MONTHLY
+    assert added_transaction['frequency'] == Frequency.MONTHLY.name
     assert added_transaction['user_id'] == 20
     mock_user_repo.find_by_id.assert_called_once_with(dto.user_id)
     mock_category_repo.find_by_id.assert_called_once_with(income_category.id)
@@ -126,7 +126,7 @@ def test_get_by_id(mock_recurring_transaction_repo, service):
         amount=20,
         frequency=Frequency.MONTHLY,
         user_id=1,
-        next_due_date='2026-12-09',
+        next_due_date=datetime.date(2026, 12, 9),
         category_id=1,
         type_='income'
     )
@@ -205,8 +205,9 @@ def test_update_recurring_transaction(service, mock_recurring_transaction_repo, 
         category_id=3,
         type_='expense'
     )
+
     mock_recurring_transaction_repo.find_by_id.return_value = transaction
-    next_due_date = '2026-10-15'
+    next_due_date = datetime.date(2026, 10, 15)
     service.update_recurring_transaction(
         transaction_id=3,
         amount=100,
