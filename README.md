@@ -36,4 +36,4 @@ To stop and remove all the containers
 docker-compose down
 ```
 ## Tests
-Each key component of the application is tested to ensure functionality and compliance to the expected behaviour. Testing is carried out using pytest and unittest with object mocking. The test coverage is over 80%, ensuring that the application performs reliably under various scenarios. 
+Each key component of the application (__models, repositories, services and routes__) is tested to ensure functionality and compliance to the expected behaviour. Testing is carried out with pytest and unittest mostly using object and function mocking. The test coverage is over 80%, ensuring that the application performs reliably under various scenarios. 
