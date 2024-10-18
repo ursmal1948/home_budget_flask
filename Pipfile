@@ -17,6 +17,7 @@ flask-apscheduler = "*"
 flask-migrate = "*"
 coverage = "*"
 pytest = "*"
+flask-praetorian = "*"
 
 [dev-packages]
 
