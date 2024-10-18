@@ -18,6 +18,7 @@ flask-migrate = "*"
 coverage = "*"
 pytest = "*"
 flask-praetorian = "*"
+coverage-badge = "*"
 
 [dev-packages]
 
