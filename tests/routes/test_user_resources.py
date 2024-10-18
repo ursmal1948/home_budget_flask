@@ -13,7 +13,7 @@ class TestCreateUserResource:
             'name': user_data['name'],
             'email': user_data['email'],
             'password': user_data['password'],
-            'role': user_data['role']
+            'roles': user_data['roles']
         }
         mock_add_user.return_value = mock_response
         response = client.post('/users', json=user_data)
@@ -30,7 +30,7 @@ class TestUserIdResource:
             'name': user_data['name'],
             'email': user_data['email'],
             'password': user_data['password'],
-            'role': user_data['role']
+            'roles': user_data['roles']
         }
         mock_get_by_id.return_value = mock_response
 

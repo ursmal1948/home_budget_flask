@@ -10,14 +10,14 @@ from app.persistent.repository import user_repository
 
 @pytest.fixture
 def example_user():
-    return UserEntity(name='S', password='pass1', email='u@gmail.com', role='admin')
+    return UserEntity(name='S', hashed_password='pass1', email='u@gmail.com', roles='admin')
 
 
 @pytest.fixture
 def example_users():
     return [
-        UserEntity(name='A', password='P1', email='A@gmail.com', role='admin'),
-        UserEntity(name='B', password='P2', email='B@gmail.com', role='user'),
+        UserEntity(name='A', hashed_password='P1', email='A@gmail.com', roles='admin,user'),
+        UserEntity(name='B', hashed_password='P2', email='B@gmail.com', roles='user'),
 
     ]
 
@@ -98,7 +98,7 @@ def test_find_user_by_email(app_context, example_user):
     assert user_from_db.id == 1
     assert user_from_db.name == example_user.name
     assert user_from_db.email == example_user.email
-    assert user_from_db.role == example_user.role
+    assert user_from_db.roles == example_user.roles
 
 
 def test_find_user_by_name(app_context, example_user):
@@ -109,7 +109,7 @@ def test_find_user_by_name(app_context, example_user):
     assert user_from_db.id == 1
     assert user_from_db.name == example_user.name
     assert user_from_db.email == example_user.email
-    assert user_from_db.role == example_user.role
+    assert user_from_db.roles == example_user.roles
 
 
 def test_calculate_user_total_income(app_context, example_user):

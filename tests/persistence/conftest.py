@@ -23,7 +23,8 @@ def user_data():
     return {
         "name": "Suzy",
         "email": "suzy@gmail.com",
-        "password": "suzy123",
+        "roles": "admin",
+        "is_active": True,
     }
 
 

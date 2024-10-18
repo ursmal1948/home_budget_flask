@@ -1,3 +1,4 @@
+import flask_praetorian
 from flask_restful import Resource
 from flask import request, Response
 from jsonschema import validate
@@ -23,6 +24,7 @@ from app.routes.schemas import (
 )
 from app.service.configuration import (
     user_service,
+    user_security_service,
     category_service,
     transaction_service,
     budget_planning_service,
@@ -36,14 +38,14 @@ class RegisterUserResource(Resource):
 
     def post(self) -> Response:
         register_user_dto = RegisterUserDto.from_dict(request.json)
-        return user_service.register_user(register_user_dto)
+        return user_security_service.register_user(register_user_dto)
 
 
 class ActivationUserResource(Resource):
 
     def post(self) -> Response:
         token = request.json['token']
-        return user_service.activate_user(token)
+        return user_security_service.activate_user(token)
 
 
 class CreateUserResource(Resource):
@@ -52,29 +54,35 @@ class CreateUserResource(Resource):
         json_body = request.json
         validate(json_body, schema=user_creation_schema)
         user_dto = CreateUserDto.from_dict(json_body)
+
         return user_service.add_user(user_dto)
 
 
 class UserIdResource(Resource):
-
+    # @flask_praetorian.auth_required
     def get(self, user_id: int) -> Response:
         return user_service.get_by_id(user_id)
 
 
 class UserIdTotalIncomeResource(Resource):
+    # @flask_praetorian.auth_required
     def get(self, user_id: int) -> Response:
         return user_service.get_total_income(user_id)
 
 
 class CategoryIdResource(Resource):
+
+    # @flask_praetorian.auth_required
     def get(self, category_id: int) -> Response:
         return category_service.get_by_id(category_id)
 
 
 class CategoryNameResource(Resource):
+    # @flask_praetorian.auth_required
     def get(self, category_name: str) -> Response:
         return category_service.get_by_name(category_name)
 
+    # @flask_praetorian.roles_required('admin')
     def post(self, category_name: str) -> Response:
         if not validate_name(category_name):
             return {'message': 'Invalid name'}, 400
@@ -94,12 +102,14 @@ class CategoryNameResource(Resource):
         )
         return category_service.add_category(category_dto)
 
+    # @flask_praetorian.roles_required('admin')
     def delete(self, category_name: str) -> Response:
         category_service.delete_by_name(category_name)
         return {'message': 'Category deleted'}, 200
 
 
 class ChangeExpenseCategoryPercentageResource(Resource):
+    # @flask_praetorian.roles_required('admin')
     def patch(self, category_id: int):
         json_body = request.json
         validate(json_body, schema=percentage_schema)
@@ -109,6 +119,7 @@ class ChangeExpenseCategoryPercentageResource(Resource):
 
 
 class CreateTransactionResource(Resource):
+    # @flask_praetorian.auth_required
     def post(self) -> Response:
         json_body = request.json
         validate(json_body, schema=transaction_creation_schema)
@@ -118,9 +129,11 @@ class CreateTransactionResource(Resource):
 
 
 class TransactionIdResource(Resource):
+    # @flask_praetorian.auth_required
     def get(self, transaction_id: int) -> Response:
         return transaction_service.get_by_id(transaction_id)
 
+    # @flask_praetorian.auth_required
     def patch(self, transaction_id: int) -> Response:
         json_body = request.json
         validate(json_body, amount_schema)
@@ -130,13 +143,13 @@ class TransactionIdResource(Resource):
 
 
 class TransactionListByCategoryResource(Resource):
-
+    # @flask_praetorian.roles_required('admin')
     def get(self, category_name: str) -> Response:
         return transaction_service.get_all_transactions_for_category(category_name)
 
 
 class TransactionsFilterResource(Resource):
-
+    # @flask_praetorian.roles_required('admin')
     def get(self) -> Response:
         amount = int(request.args.get('amount'))
         json_body = request.json
@@ -149,16 +162,19 @@ class TransactionsFilterResource(Resource):
 
 
 class BudgetSummaryResource(Resource):
+    # @flask_praetorian.auth_required
     def get(self, user_id: int) -> Response:
         return budget_planning_service.generate_budget_entries_for_user(user_id)
 
 
 class BudgetListSummaryResource(Resource):
+    # @flask_praetorian.roles_required('admin')
     def get(self) -> Response:
         return budget_planning_service.generate_budget_entries_for_all_users()
 
 
 class CreateRecurringTransactionResource(Resource):
+    # @flask_praetorian.auth_required
     def post(self) -> Response:
         json_body = request.json
         validate(json_body, schema=recurring_transaction_creation_schema)
@@ -168,9 +184,11 @@ class CreateRecurringTransactionResource(Resource):
 
 class RecurringTransactionIdResource(Resource):
 
+    # @flask_praetorian.auth_required
     def get(self, transaction_id: int) -> Response:
         return recurring_transaction_service.get_by_id(transaction_id)
 
+    # @flask_praetorian.auth_required
     def patch(self, transaction_id: int) -> Response:
         json_body = request.json
         if not json_body:
@@ -181,6 +199,8 @@ class RecurringTransactionIdResource(Resource):
 
 
 class ProcessRecurringTransactionsResource(Resource):
+
+    # @flask_praetorian.roles_required('admin')
     def post(self) -> Response:
         recurring_transactions = recurring_transaction_service.process_recurring_transactions()
         if not recurring_transactions:

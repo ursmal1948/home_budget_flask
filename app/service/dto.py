@@ -25,7 +25,7 @@ class RegisterUserDto:
     email: str
     password: str
     password_confirmation: str
-    role: str
+    roles: str
 
     def check_passwords(self) -> bool:
         return self.password == self.password_confirmation
@@ -36,15 +36,15 @@ class RegisterUserDto:
             email=self.email,
             password=new_password,
             password_confirmation=self.password_confirmation,
-            role=self.role,
+            roles=self.roles,
         )
 
     def to_user_entity(self) -> UserEntity:
         return UserEntity(
             name=self.name,
             email=self.email,
-            password=self.password,
-            role=self.role,
+            hashed_password=self.password,
+            roles=self.roles,
             is_active=False,
         )
 
@@ -55,7 +55,7 @@ class RegisterUserDto:
             email=data['email'],
             password=data['password'],
             password_confirmation=data['password_confirmation'],
-            role=data['role'],
+            roles=data['roles'],
         )
 
 
@@ -64,14 +64,14 @@ class UserDto:
     id: int
     name: str
     email: str
-    role: str
+    roles: str
 
     def to_dict(self) -> dict[str, Any]:
         return {
             'id': self.id,
             'name': self.name,
             'email': self.email,
-            'role': self.role,
+            'roles': self.roles,
         }
 
     @classmethod
@@ -80,7 +80,7 @@ class UserDto:
             user_entity.id,
             user_entity.name,
             user_entity.email,
-            user_entity.role,
+            user_entity.roles,
         )
 
 
@@ -89,7 +89,7 @@ class CreateUserDto:
     name: str
     email: str
     password: str
-    role: str
+    roles: str
 
     @classmethod
     def from_dict(cls, data: dict[str, str]) -> Self:
@@ -97,7 +97,7 @@ class CreateUserDto:
             name=data['name'],
             email=data['email'],
             password=data['password'],
-            role=data['role'],
+            roles=data['roles']
         )
 
 

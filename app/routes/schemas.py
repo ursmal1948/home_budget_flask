@@ -22,8 +22,8 @@ user_creation_schema = {
             "type": "string",
             "pattern": r'[\w\.-]+@(gmail.com|wp.pl|onet.pl)$'
         },
-        "role": {
-            "type": "string", "enum": ["ADMIN", "USER"]
+        "roles": {
+            "type": "string",
         }
     },
     "required": ["name", "password", "email"]

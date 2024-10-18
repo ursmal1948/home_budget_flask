@@ -6,20 +6,22 @@ from app.service.dto import CreateUserDto
 from app.service.users import UserService
 from werkzeug.exceptions import NotFound
 
+import flask_praetorian
+
 
 @pytest.fixture
 def create_user_dto() -> CreateUserDto:
     return CreateUserDto(
         name='U',
         email='u@gmail.com',
-        password='****',
-        role='admin'
+        password='Examplepass2',
+        roles='admin'
     )
 
 
 @pytest.fixture
 def example_user():
-    return {'id': 1, 'name': 'U', 'email': 'xxx@gmail.com', 'password': '****', 'role': 'admin'}
+    return {'id': 1, 'name': 'U', 'email': 'xxx@gmail.com', 'password': 'Pass1', 'roles': 'admin'}
 
 
 @pytest.fixture
@@ -50,8 +52,8 @@ def test_get_user_by_id(user_service, mock_user_repo, example_user):
         id=example_user['id'],
         name=example_user['name'],
         email=example_user['email'],
-        role=example_user['role'],
-        password=example_user['password']
+        roles=example_user['roles'],
+        hashed_password=example_user['password']
     )
 
     found_user = user_service.get_by_id(1)
@@ -59,7 +61,7 @@ def test_get_user_by_id(user_service, mock_user_repo, example_user):
     assert 'password' not in found_user
     assert found_user['name'] == example_user['name']
     assert found_user['email'] == example_user['email']
-    assert found_user['role'] == example_user['role']
+    assert found_user['roles'] == example_user['roles']
     mock_user_repo.find_by_id.assert_called_once_with(example_user['id'])
 
 
@@ -69,14 +71,14 @@ def test_get_user_by_name(user_service, mock_user_repo, example_user):
         name=example_user['name'],
         password=example_user['password'],
         email=example_user['email'],
-        role=example_user['role']
+        roles=example_user['roles']
     )
 
     found_user = user_service.get_by_name('U')
     assert found_user is not None
     assert 'password' not in found_user
     assert found_user['email'] == example_user['email']
-    assert found_user['role'] == example_user['role']
+    assert found_user['roles'] == example_user['roles']
     mock_user_repo.find_by_name.assert_called_once_with('U')
 
 

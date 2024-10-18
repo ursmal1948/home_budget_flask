@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from typing import Any
-from werkzeug.security import generate_password_hash, check_password_hash
 import datetime
 from app.persistent.repository import UserRepository, ActivationTokenRepository
 from app.persistent.entity import ActivationTokenEntity
@@ -14,7 +13,7 @@ from app.config import (
     ACTIVATION_TOKEN_EXPIRATION_TIME_IN_SECONDS
 )
 from werkzeug.exceptions import NotFound
-
+from app.security.configuration import guard
 import logging
 
 logging.basicConfig(level=logging.INFO)
@@ -33,11 +32,13 @@ class UserService:
         if self.user_repository.find_by_email(email):
             raise ValueError('Email already exists')
 
+        hashed_password = guard.hash_password(user_dto.password)
+
         user_entity = UserEntity(
             name=user_dto.name,
-            password=user_dto.password,
+            hashed_password=hashed_password,
             email=user_dto.email,
-            role=user_dto.role
+            roles=user_dto.roles
         )
 
         self.user_repository.save_or_update(user_entity)
@@ -89,15 +90,14 @@ class UserSecurityService:
             raise ValueError('Email already exists')
 
         user_entity = register_user_dto.with_password(
-            generate_password_hash(register_user_dto.password)).to_user_entity()  # mam usera
-        # user_entity.passw
+            guard.hash_password(register_user_dto.password)).to_user_entity()
         self.user_repository.save_or_update(user_entity)
 
         # przechodzimy do generowania tokena dla usera
         # dzieki tokenoiw user moze aktywowac konto po rejstracji
 
         timestamp = datetime.datetime.now(datetime.UTC) + datetime.timedelta(
-            minutes=ACTIVATION_TOKEN_EXPIRATION_TIME_IN_SECONDS)
+            seconds=ACTIVATION_TOKEN_EXPIRATION_TIME_IN_SECONDS)
         token = UserSecurityService._generate_token(ACTIVATION_TOKEN_LENGTH)
         user_id = user_entity.id
         self.activation_token_repository.save_or_update(

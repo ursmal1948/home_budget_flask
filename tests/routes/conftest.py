@@ -26,5 +26,5 @@ def user_data():
         'name': 'Ula',
         'email': 'u@gmail.com',
         'password': 'Password123*',
-        'role': 'ADMIN'
+        'roles': 'ADMIN'
     }
