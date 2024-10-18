@@ -64,9 +64,9 @@ def test_add_transaction(service, mock_user_repo, mock_category_repo):
     mock_user_repo.find_by_id.return_value = UserEntity(
         id=1,
         name='U1',
-        password='1234',
+        hashed_password='1234',
         email='u1@gmail.com',
-        role='admin',
+        roles='admin',
         is_active=True
     )
     dto = CreateTransactionDto(amount=100, user_id=1, category_id=10)
