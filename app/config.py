@@ -41,14 +41,15 @@ ACTIVATION_TOKEN_EXPIRATION_TIME_IN_SECONDS = int(getenv('ACTIVATION_TOKEN_EXPIR
 ACTIVATION_TOKEN_LENGTH = int(getenv('ACTIVATION_TOKEN_LENGTH', '30'))
 
 # ------------------------------------------------------------
-# CONFIGURATION OF JWT TOKEN
+# SECURITY
 # ------------------------------------------------------------
 
-JWT_CONFIG = {
-    'JWT_ISSUER': getenv('JWT_ISSUER', 'Ula'),
-    'JWT_AUTHTYPE': getenv('JWT_AUTHTYPE', 'HS512'),
-    'JWT_SECRET': getenv('JWT_SECRET', 'NSU23YU48JASLKJ39U8OWUDAHSKN'),
-    'JWT_ACCESS_MAX_AGE': int(getenv('JWT_ACCESS_MAX_AGE', '5')),
-    'JWT_REFRESH_MAX_AGE': int(getenv('JWT_REFRESH_MAX_AGE', '400')),
-    'JWT_PREFIX': getenv('JWT_PREFIX', 'Bearer')
+SECRET_KEY = getenv('SECRET_KEY')
+JWT_ACCESS_LIFESPAN = int(getenv('JWT_ACCESS_LIFESPAN'))
+JWT_REFRESH_LIFESPAN = int(getenv('JWT_REFRESH_LIFESPAN'))
+
+SECURITY_SETTINGS = {
+    'SECRET_KEY': SECRET_KEY,
+    'JWT_ACCESS_LIFESPAN': {'hours': JWT_ACCESS_LIFESPAN},
+    'JWT_REFRESH_LIFESPAN': {'days': JWT_REFRESH_LIFESPAN}
 }
