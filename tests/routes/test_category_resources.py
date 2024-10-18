@@ -7,14 +7,14 @@ from werkzeug.exceptions import NotFound
 class TestCategoryIdResource:
 
     @patch('app.service.configuration.category_service.get_by_id')
-    def test_get_category_by_id(self, mock_service, client):
-        mock_service.return_value = {'id': 1, 'name': 'C1'}
+    def test_get_category_by_id(self, mock_get_by_id, client):
+        mock_get_by_id.return_value = {'id': 1, 'name': 'C1'}
         response = client.get('/categories/1')
 
         assert response.status_code == 200
         assert response.json['name'] == 'C1'
         assert response.json['id'] == 1
-        mock_service.assert_called_once_with(1)
+        mock_get_by_id.assert_called_once_with(1)
 
     @patch('app.service.configuration.category_service.get_by_id')
     def test_get_category_by_id_not_found(self, mock_service, client):
