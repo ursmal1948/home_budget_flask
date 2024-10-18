@@ -26,10 +26,10 @@ class UserEntity(sa.Model):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     name: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
-    password: Mapped[str] = mapped_column(String(512), nullable=False)
-    email: Mapped[str] = mapped_column(String(255), nullable=False)
-    role: Mapped[str] = mapped_column(String(15), nullable=False)
-    is_active: Mapped[bool] = mapped_column(Boolean, default=False)
+    hashed_password: Mapped[str] = mapped_column(String(512), nullable=False)
+    email: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
+    roles: Mapped[str] = mapped_column(String(15), nullable=False)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, server_default='1')
 
     transactions: Mapped[list['TransactionEntity']] = relationship(
         'TransactionEntity',
@@ -40,9 +40,9 @@ class UserEntity(sa.Model):
         return {
             'id': self.id,
             'name': self.name,
-            'password': self.password,
             'email': self.email,
-            'role': self.role,
+            'roles': self.roles,
+            'is_active': self.is_active,
         }
 
     def check_password(self, password: str) -> bool:
@@ -53,6 +53,38 @@ class UserEntity(sa.Model):
 
     def __repr__(self) -> str:
         return str(self)
+
+    @property
+    def identity(self):
+        """
+        *Required Attribute or Property*
+
+        flask-praetorian requires that the user class has an ``identity`` instance
+        attribute or property that provides the unique id of the user instance
+        """
+        return self.id
+
+    @property
+    def rolenames(self):
+        try:
+            return self.roles.split(",")
+        except Exception:
+            return []
+
+    @property
+    def password(self):
+        return self.hashed_password
+
+    @classmethod
+    def lookup(cls, email):
+        return cls.query.filter_by(email=email).one_or_none()
+
+    @classmethod
+    def identify(cls, user_id):
+        return cls.query.get(user_id)
+
+    def is_valid(self):
+        return self.is_active
 
 
 class ActivationTokenEntity(sa.Model):
