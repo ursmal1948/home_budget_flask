@@ -77,7 +77,6 @@ class UserSecurityService:
     user_repository: UserRepository
     activation_token_repository: ActivationTokenRepository
 
-    # co zwracac jak uzytkownik jest zarejestorwany
     def register_user(self, register_user_dto: RegisterUserDto) -> dict[str, Any]:
 
         if not register_user_dto.check_passwords():
@@ -93,9 +92,6 @@ class UserSecurityService:
             guard.hash_password(register_user_dto.password)).to_user_entity()
         self.user_repository.save_or_update(user_entity)
 
-        # przechodzimy do generowania tokena dla usera
-        # dzieki tokenoiw user moze aktywowac konto po rejstracji
-
         timestamp = datetime.datetime.now(datetime.UTC) + datetime.timedelta(
             seconds=ACTIVATION_TOKEN_EXPIRATION_TIME_IN_SECONDS)
         token = UserSecurityService._generate_token(ACTIVATION_TOKEN_LENGTH)
@@ -109,16 +105,6 @@ class UserSecurityService:
         )
         MailSender.send(register_user_dto.email, 'Activate Your Account', f'<h1>Activation Token: {token}</h1>')
 
-        # jak moze wygladac aktywacja konta po  rejestracji
-
-        # Moglibysmy zrobic encje w ktorej masz wygenerowany token, timestamp oraz user_id
-        # W mailu wysylasz token, ktory jesy powiazany z user_id, i odbiorca maila,
-        # ten token gdzies wkleja, i wyysla go requestem do naszej aplikacji.
-        # aplikacje
-        # aplikacja idzie do encji w ktorej po tym tokenie zwraca user id, a potem user
-        # wczesniej sprawdzajac czy akcja aktywacji wystapila przed uplywem czzasu
-        # zdefiniowanego w timestamp. x
-        # jezeli aktywacja wysatpila na czas wtedy ustawiasz pole is_active pobranego usera
         return UserDto.from_user_entity(user_entity).to_dict()
 
     def activate_user(self, token: str) -> dict[str, Any]:
@@ -128,7 +114,6 @@ class UserSecurityService:
             raise NotFound('User not found')
 
         self.activation_token_repository.delete_by_id(activation_token_with_user.id)
-        # niebedzie tokena w bazie, ale ja sobie sprawdzam na dole czy jest aktywny.
 
         if not activation_token_with_user.is_active():
             raise ValueError('Token has been expired')
