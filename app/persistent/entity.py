@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Self
+from typing import Any
 from sqlalchemy import (
     Integer,
     BigInteger,
@@ -10,9 +10,9 @@ from sqlalchemy import (
 )
 import datetime
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from app.persistent.configuration import sa
 from werkzeug.security import check_password_hash
 from enum import Enum
+from app.persistent.configuration import sa
 
 
 class Frequency(Enum):
@@ -92,7 +92,6 @@ class ActivationTokenEntity(sa.Model):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     token: Mapped[str] = mapped_column(String(255), nullable=False)
-    # timestamp ktory bedzie mowil kiedy sie konczy token
     timestamp: Mapped[int] = mapped_column(BigInteger)
     user_id: Mapped[int] = mapped_column(Integer, ForeignKey('users.id'))
 

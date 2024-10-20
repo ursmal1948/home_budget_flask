@@ -1,8 +1,8 @@
-"""countries, cities, hotels and rooms tables created 
+"""users, activcation tokens, transactions, categories, recurring transactions tables created
 
-Revision ID: 6177c9b7489a
+Revision ID: d1ad4d5af38f
 Revises: 
-Create Date: 2024-10-04 17:14:14.182639
+Create Date: 2024-10-20 17:56:33.938976
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '6177c9b7489a'
+revision = 'd1ad4d5af38f'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -27,11 +27,12 @@ def upgrade():
     op.create_table('users',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('name', sa.String(length=255), nullable=False),
-    sa.Column('password', sa.String(length=512), nullable=False),
+    sa.Column('hashed_password', sa.String(length=512), nullable=False),
     sa.Column('email', sa.String(length=255), nullable=False),
-    sa.Column('role', sa.String(length=10), nullable=False),
-    sa.Column('is_active', sa.Boolean(), nullable=False),
+    sa.Column('roles', sa.String(length=15), nullable=False),
+    sa.Column('is_active', sa.Boolean(), server_default='1', nullable=False),
     sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('email'),
     sa.UniqueConstraint('name')
     )
     op.create_table('activation_tokens',
