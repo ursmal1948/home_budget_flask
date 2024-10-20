@@ -14,10 +14,10 @@
 
 ## Registration, activation and security
 
-### Registration process with both functionalities for creation and activation. Once user has created his account, an email is sent to him with activation token (of certain expiration time), which is required for successful activation of his account. 
+Registration process with both functionalities for creation and activation. Once user has created his account, an email is sent to him with activation token (of certain expiration time), which is required for successful activation of his account. 
 ### 
-### Security is done with flask-preatorian to ensure that only authorized individuals can access certain functionalities.
-### JWT authentication and authorization - users receive a token when logging, which is required for accessing protected endpoints. Token expiration and refresh mechanisms are implemented to maintain security over time. 
+Security is done with flask-preatorian to ensure that only authorized individuals can access certain functionalities.
+JWT authentication and authorization - users receive a token when logging, which is required for accessing protected endpoints. Token expiration and refresh mechanisms are implemented to maintain security over time. 
 
 
 ## Docker & Containerization
