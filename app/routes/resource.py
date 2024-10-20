@@ -37,7 +37,9 @@ logging.basicConfig(level=logging.INFO)
 class RegisterUserResource(Resource):
 
     def post(self) -> Response:
-        register_user_dto = RegisterUserDto.from_dict(request.json)
+        json_body = request.json
+        validate(json_body, schema=user_creation_schema)
+        register_user_dto = RegisterUserDto.from_dict(json_body)
         return user_security_service.register_user(register_user_dto)
 
 
